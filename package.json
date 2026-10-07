@@ -1,6 +1,6 @@
 {
   "name": "sillytavern-localimage",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Local image handling extension for SillyTavern",
   "private": true,
   "dependencies": {
@@ -8,7 +8,8 @@
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "test": "node --test"
   },
   "eslintConfig": {
     "extends": [

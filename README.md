@@ -1,5 +1,7 @@
 # SillyTavern-LocalImage
 
+This fork adds a draggable Quick Image Send button. Drag it with a mouse, touch, or pen to keep it clear of other controls. Its position is saved in your SillyTavern extension settings, and the image panel follows the button while staying within the screen. The original project is [mechamarmot/SillyTavern-LocalImage](https://github.com/mechamarmot/SillyTavern-LocalImage).
+
 **Use your own images in SillyTavern chats—locations, objects, outfits, expressions, anything you want!**
 
 LocalImage lets you upload images for each character (and your persona) and assign memorable names to them. Show a character's bedroom, their favorite weapon, a map of their kingdom, or their various outfits. Display images instantly with a floating quick-send button, or let the AI choose which images to show based on context.
@@ -10,7 +12,7 @@ LocalImage lets you upload images for each character (and your persona) and assi
 
 - **Per-Character Image Galleries** - Each character has their own image library
 - **Persona/User Images** - Your persona can also have images (use `::img YourName pic::` or `::img {{user}} pic::`)
-- **Quick Image Send** - Floating button for instant image sending without typing tags
+- **Quick Image Send** - Draggable floating button with a remembered position for instant image sending without typing tags
 - **Any Type of Image** - Locations, objects, outfits, scenes, expressions—anything!
 - **Custom Image Names & Descriptions** - Assign names like "bedroom", "enchanted_sword", or "armor" with descriptions
 - **AI-Driven Image Display** - The AI can choose which image to show based on context
@@ -28,8 +30,19 @@ LocalImage lets you upload images for each character (and your persona) and assi
 ### From URL (Recommended)
 1. Open SillyTavern
 2. Go to **Extensions** > **Install Extension**
-3. Enter: `https://github.com/mechamarmot/SillyTavern-LocalImage`
+3. Enter: `https://github.com/GalliumWang/SillyTavern-LocalImage`
 4. Click Install
+
+### Switching an Existing Installation to This Fork
+
+To keep your current image assignments and settings, switch the existing extension's Git remote. In a terminal opened **inside your installed `SillyTavern-LocalImage` extension folder**, run:
+
+```bash
+git remote set-url origin https://github.com/GalliumWang/SillyTavern-LocalImage.git
+git pull --ff-only origin master
+```
+
+Refresh SillyTavern after updating. Keep the existing extension folder name; do not install a second copy alongside it. If you have edited plugin files locally, back up those edits before updating.
 
 ### Manual Installation
 1. Download or clone this repository
@@ -57,11 +70,13 @@ LocalImage lets you upload images for each character (and your persona) and assi
 The easiest way to send images:
 
 1. Look for the **floating image button** in the bottom-right corner of the chat
-2. Click it to open the **Quick Image Send** panel
+2. Drag it to a convenient position, or click/tap it to open the **Quick Image Send** panel
 3. Select an image from the dropdown for any character or your persona
 4. Click the **send button** to instantly insert the image as a narrator message
 
 This sends the image without triggering an AI response—perfect for setting scenes or showing something specific.
+
+Dragging does not open or close the panel. Your chosen position is remembered after refresh and adapts to window resizing or screen rotation. Keyboard users can focus the button and press Enter or Space to open the panel.
 
 ### 3. Let the AI Choose (Manual Setup)
 
@@ -163,7 +178,7 @@ The `{{user}}` macro will be replaced with your persona name.
 
 ### Quick Send button not visible?
 
-- The floating button appears in the bottom-right corner of the chat area
+- The floating button initially appears in the bottom-right corner of the chat area; after dragging, it appears at your saved position
 - Make sure you're in a chat (not the main menu)
 - Try refreshing the page
 
@@ -190,6 +205,7 @@ The `{{user}}` macro will be replaced with your persona name.
 ### Build
 ```bash
 npm install
+npm test
 npm run build
 ```
 

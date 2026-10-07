@@ -2,6 +2,7 @@
 import { createRoot } from 'react-dom/client';
 import Gallery from './Gallery';
 import GroupGallery from './GroupGallery';
+import { makeFloatingButtonDraggable, positionFloatingPanel } from './FloatingControls.mjs';
 
 const EXTENSION_NAME = 'SillyTavern-LocalImage';
 const BUTTON_ID = 'local_image_button';
@@ -11,6 +12,7 @@ const FLOATING_PANEL_ID = 'local_image_floating_panel';
 let galleryRoot = null;
 let galleryContainer = null;
 let floatingPanelExpanded = false;
+let cleanupFloatingButton = null;
 
 /**
  * Initialize extension settings
@@ -25,6 +27,8 @@ function initSettings() {
         characterSettings: {},
         // customPrompts: [{ id: "uuid", name: "My Prompt", template: "..." }]
         customPrompts: [],
+        // Relative viewport coordinates, set after dragging the quick-send button.
+        floatingButtonPosition: null,
     };
 
     if (!context.extensionSettings[EXTENSION_NAME]) {
@@ -990,30 +994,30 @@ function getEntitiesWithImages() {
  */
 function createFloatingButton() {
     // Remove existing if any
+    if (cleanupFloatingButton) cleanupFloatingButton();
     const existing = document.getElementById(FLOATING_BUTTON_ID);
     if (existing) existing.remove();
 
-    const button = document.createElement('div');
+    const button = document.createElement('button');
+    button.type = 'button';
     button.id = FLOATING_BUTTON_ID;
     button.className = 'local-image-floating-button';
     button.innerHTML = '<i class="fa-solid fa-images"></i>';
-    button.title = 'Quick Image Send';
-
-    button.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleFloatingPanel();
-    });
+    button.title = 'Quick Image Send — drag to move';
+    button.setAttribute('aria-label', 'Quick Image Send');
+    button.setAttribute('aria-expanded', String(floatingPanelExpanded));
+    button.setAttribute('aria-controls', FLOATING_PANEL_ID);
 
     document.body.appendChild(button);
-    // Position using top instead of bottom to avoid transform issues
-    const updatePosition = () => {
-        const viewportHeight = window.innerHeight;
-        button.style.top = (viewportHeight - 140) + 'px';
-        button.style.bottom = 'auto';
-    };
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
+    cleanupFloatingButton = makeFloatingButtonDraggable(button, {
+        getPosition: () => getSettings().floatingButtonPosition,
+        savePosition: (position) => {
+            getSettings().floatingButtonPosition = position;
+            saveSettings();
+        },
+        onClick: toggleFloatingPanel,
+        onPositioned: updateFloatingPanelPosition,
+    });
     console.log(`[${EXTENSION_NAME}] Floating button created`);
 }
 
@@ -1028,6 +1032,13 @@ function toggleFloatingPanel() {
     } else {
         closeFloatingPanel();
     }
+    document.getElementById(FLOATING_BUTTON_ID)?.setAttribute('aria-expanded', String(floatingPanelExpanded));
+}
+
+function updateFloatingPanelPosition() {
+    const panel = document.getElementById(FLOATING_PANEL_ID);
+    const button = document.getElementById(FLOATING_BUTTON_ID);
+    if (panel && button) positionFloatingPanel(panel, button);
 }
 
 /**
@@ -1042,6 +1053,7 @@ function createFloatingPanel() {
     // Don't show panel if no entities have images
     if (entities.length === 0) {
         floatingPanelExpanded = false;
+        document.getElementById(FLOATING_BUTTON_ID)?.setAttribute('aria-expanded', 'false');
         console.log(`[${EXTENSION_NAME}] No entities with images, not showing panel`);
         return;
     }
@@ -1066,6 +1078,7 @@ function createFloatingPanel() {
         e.preventDefault();
         e.stopPropagation();
         floatingPanelExpanded = false;
+        document.getElementById(FLOATING_BUTTON_ID)?.setAttribute('aria-expanded', 'false');
         closeFloatingPanel();
     });
 
@@ -1120,11 +1133,7 @@ function createFloatingPanel() {
 
     panel.appendChild(content);
     document.body.appendChild(panel);
-    // Position using top instead of bottom to avoid transform issues
-    const viewportHeight = window.innerHeight;
-    const panelHeight = Math.min(350, panel.offsetHeight);
-    panel.style.top = (viewportHeight - 140 - panelHeight - 10) + 'px';
-    panel.style.bottom = 'auto';
+    updateFloatingPanelPosition();
 
     console.log(`[${EXTENSION_NAME}] Floating panel created with ${entities.length} entities`);
 }
